@@ -10,8 +10,9 @@ import {
   Euro, Building2, Briefcase, FileText, Download, Plus, Edit, Trash2,
   Eye, Search, Filter, RefreshCw, ChevronDown, ChevronUp, X, Check,
   AlertCircle, Clock, Award, Target, Activity, PieChart as PieChartIcon,
-  BarChart3, TrendingDown, UserCheck, UserX, Ban, MoreHorizontal
+  BarChart3, TrendingDown, UserCheck, UserX, Ban, MoreHorizontal, Database
 } from 'lucide-react';
+import Link from 'next/link';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -371,41 +372,6 @@ export default function HRDashboard() {
     }
   }, [selectedYear]);
 
-  const seedDatabase = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/seed');
-      const data = await response.json();
-      if (data.success) {
-        toast({
-          title: 'Succès',
-          description: data.message
-        });
-        // Refresh all data
-        await Promise.all([
-          fetchDashboardData(),
-          fetchEmployees(),
-          fetchDepartments(),
-          fetchPositions(),
-          fetchContracts(),
-          fetchAbsences(),
-          fetchTrainings(),
-          fetchEmployeeTrainings(),
-          fetchSalaries()
-        ]);
-      }
-    } catch (error) {
-      console.error('Error seeding database:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de l\'initialisation',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Initial load
   useEffect(() => {
     const loadData = async () => {
@@ -518,33 +484,6 @@ export default function HRDashboard() {
     );
   }
 
-  // Check if no data
-  const hasNoData = employees.length === 0;
-
-  if (hasNoData) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-        <Card className="w-full max-w-md mx-4">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Tableau de Bord RH</CardTitle>
-            <CardDescription>Initialisation de la base de données</CardDescription>
-          </CardHeader>
-          <CardContent className="text-center">
-            <Database className="h-16 w-16 mx-auto mb-4 text-slate-400" />
-            <p className="text-slate-600 mb-6">
-              La base de données est vide. Cliquez sur le bouton ci-dessous pour initialiser 
-              avec des données de démonstration.
-            </p>
-            <Button onClick={seedDatabase} className="w-full" size="lg">
-              <Database className="h-4 w-4 mr-2" />
-              Initialiser les données de démonstration
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
@@ -575,6 +514,12 @@ export default function HRDashboard() {
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Actualiser
               </Button>
+              <Link href="/seed">
+                <Button variant="outline" size="sm">
+                  <Database className="h-4 w-4 mr-2" />
+                  Initialiser BD
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -1578,9 +1523,6 @@ export default function HRDashboard() {
     </div>
   );
 }
-
-// Import Database icon
-import { Database } from 'lucide-react';
 
 // Modal Components
 function EmployeeModal({ 

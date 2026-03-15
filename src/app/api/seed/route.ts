@@ -102,7 +102,13 @@ export async function GET() {
       // Logistique
       { firstName: 'François', lastName: 'Chevalier', email: 'f.chevalier@company.fr', dept: 7, pos: 20, salary: 4200, hireDate: '2019-01-01' },
       { firstName: 'Olivier', lastName: 'Lecoq', email: 'o.lecoq@company.fr', dept: 7, pos: 21, salary: 2400, hireDate: '2021-11-15' },
-      { firstName: 'Vincent', lastName: 'Duval', email: 'v.duval@company.fr', dept: 7, pos: 21, salary: 2400, hireDate: '2022-04-01' }
+      { firstName: 'Vincent', lastName: 'Duval', email: 'v.duval@company.fr', dept: 7, pos: 21, salary: 2400, hireDate: '2022-04-01' },
+      // Nouveaux employés 2024
+      { firstName: 'Anaïs', lastName: 'Bernard', email: 'an.bernard@company.fr', dept: 1, pos: 3, salary: 2900, hireDate: '2024-01-15' },
+      { firstName: 'Marc', lastName: 'Dubois', email: 'm.dubois@company.fr', dept: 5, pos: 15, salary: 3600, hireDate: '2024-02-01' },
+      { firstName: 'Émilie', lastName: 'Martin', email: 'em.martin@company.fr', dept: 3, pos: 9, salary: 3900, hireDate: '2024-03-15' },
+      { firstName: 'Paul', lastName: 'Leroy', email: 'p.leroy@company.fr', dept: 6, pos: 19, salary: 2300, hireDate: '2024-04-01' },
+      { firstName: 'Isabelle', lastName: 'Moreau', email: 'i.moreau@company.fr', dept: 2, pos: 6, salary: 2700, hireDate: '2024-05-15' }
     ];
 
     // Create Employees
@@ -260,7 +266,7 @@ export async function GET() {
     }
 
     // Create Salaries for 2024
-    const currentYear = new Date().getFullYear();
+    const targetYear = 2024;
     
     for (const employee of employees) {
       const contract = await db.contract.findFirst({
@@ -282,7 +288,7 @@ export async function GET() {
         await db.salary.create({
           data: {
             employeeId: employee.id,
-            month: new Date(currentYear, month, 1),
+            month: new Date(targetYear, month, 1),
             baseSalary,
             bonus,
             overtime,
@@ -291,7 +297,7 @@ export async function GET() {
             grossSalary,
             netSalary,
             status: month < 11 ? SalaryStatus.PAID : SalaryStatus.PENDING,
-            paidAt: month < 11 ? new Date(currentYear, month, 28) : null
+            paidAt: month < 11 ? new Date(targetYear, month, 28) : null
           }
         });
       }
@@ -366,6 +372,35 @@ export async function GET() {
     console.error('Error seeding database:', error);
     return NextResponse.json(
       { success: false, error: 'Erreur lors de l\'initialisation de la base de données' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST endpoint to reset and re-seed the database
+export async function POST() {
+  try {
+    // Delete all data in reverse order of dependencies
+    console.log('Deleting existing data...');
+    
+    await db.salary.deleteMany({});
+    await db.employeeTraining.deleteMany({});
+    await db.absence.deleteMany({});
+    await db.movement.deleteMany({});
+    await db.contract.deleteMany({});
+    await db.employee.deleteMany({});
+    await db.training.deleteMany({});
+    await db.position.deleteMany({});
+    await db.department.deleteMany({});
+    
+    console.log('Existing data deleted. Starting seed...');
+    
+    // Now call the GET handler to seed
+    return await GET();
+  } catch (error) {
+    console.error('Error resetting database:', error);
+    return NextResponse.json(
+      { success: false, error: 'Erreur lors de la réinitialisation de la base de données' },
       { status: 500 }
     );
   }

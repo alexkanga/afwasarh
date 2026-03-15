@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,60 +8,166 @@ datasource db {
   directUrl = env("DATABASE_URL")
 }
 
-// Départements de l'entreprise
 model Department {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String     @id @default(cuid())
+  name        String     @unique
   description String?
-  managerId   String?  @unique
-  manager     Employee? @relation("DepartmentManager", fields: [managerId], references: [id])
+  managerId   String?    @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  manager     Employee?  @relation("DepartmentManager", fields: [managerId], references: [id])
   employees   Employee[] @relation("DepartmentEmployees")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
-// Postes/Positions
 model Position {
-  id          String   @id @default(cuid())
-  title       String   @unique
+  id          String     @id @default(cuid())
+  title       String     @unique
   description String?
   baseSalary  Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   employees   Employee[] @relation("PositionEmployees")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
 }
 
-// Employés
 model Employee {
-  id              String   @id @default(cuid())
-  employeeNumber  String   @unique
-  firstName       String
-  lastName        String
-  email           String   @unique
-  phone           String?
-  birthDate       DateTime?
-  hireDate        DateTime
-  terminationDate DateTime?
-  status          EmployeeStatus @default(ACTIVE)
-  photo           String?
-  address         String?
-  
-  // Relations
-  departmentId    String?
-  department      Department? @relation("DepartmentEmployees", fields: [departmentId], references: [id])
-  positionId      String?
-  position        Position? @relation("PositionEmployees", fields: [positionId], references: [id])
-  managedDepartment Department? @relation("DepartmentManager")
-  
-  // Relations one-to-many
-  contracts       Contract[]
-  absences        Absence[]
-  trainings       EmployeeTraining[]
-  salaries        Salary[]
-  movements       Movement[]
-  
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String             @id @default(cuid())
+  employeeNumber    String             @unique
+  firstName         String
+  lastName          String
+  email             String             @unique
+  phone             String?
+  birthDate         DateTime?
+  hireDate          DateTime
+  terminationDate   DateTime?
+  status            EmployeeStatus     @default(ACTIVE)
+  photo             String?
+  address           String?
+  departmentId      String?
+  positionId        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  absences          Absence[]
+  contracts         Contract[]
+  managedDepartment Department?        @relation("DepartmentManager")
+  department        Department?        @relation("DepartmentEmployees", fields: [departmentId], references: [id])
+  position          Position?          @relation("PositionEmployees", fields: [positionId], references: [id])
+  trainings         EmployeeTraining[]
+  movements         Movement[]
+  salaries          Salary[]
+}
+
+model Contract {
+  id            String       @id @default(cuid())
+  employeeId    String
+  type          ContractType
+  startDate     DateTime
+  endDate       DateTime?
+  monthlySalary Float
+  workHours     Float        @default(35)
+  isActive      Boolean      @default(true)
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  employee      Employee     @relation(fields: [employeeId], references: [id])
+}
+
+model Absence {
+  id         String        @id @default(cuid())
+  employeeId String
+  type       AbsenceType
+  startDate  DateTime
+  endDate    DateTime
+  days       Float
+  reason     String?
+  status     AbsenceStatus @default(PENDING)
+  approvedBy String?
+  approvedAt DateTime?
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  employee   Employee      @relation(fields: [employeeId], references: [id])
+}
+
+model Training {
+  id                String             @id @default(cuid())
+  title             String
+  description       String?
+  provider          String?
+  duration          Float
+  cost              Float
+  category          String?
+  startDate         DateTime?
+  endDate           DateTime?
+  location          String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  employeeTrainings EmployeeTraining[]
+}
+
+model EmployeeTraining {
+  id             String         @id @default(cuid())
+  employeeId     String
+  trainingId     String
+  status         TrainingStatus @default(REGISTERED)
+  startDate      DateTime?
+  endDate        DateTime?
+  hoursCompleted Float          @default(0)
+  certificate    String?
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  employee       Employee       @relation(fields: [employeeId], references: [id])
+  training       Training       @relation(fields: [trainingId], references: [id])
+}
+
+model Salary {
+  id            String       @id @default(cuid())
+  employeeId    String
+  month         DateTime
+  baseSalary    Float
+  bonus         Float        @default(0)
+  overtime      Float        @default(0)
+  deductions    Float        @default(0)
+  socialCharges Float        @default(0)
+  netSalary     Float
+  grossSalary   Float
+  paidAt        DateTime?
+  status        SalaryStatus @default(PENDING)
+  notes         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  employee      Employee     @relation(fields: [employeeId], references: [id])
+}
+
+model Movement {
+  id             String       @id @default(cuid())
+  employeeId     String
+  type           MovementType
+  effectiveDate  DateTime
+  reason         String?
+  fromDepartment String?
+  toDepartment   String?
+  fromPosition   String?
+  toPosition     String?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  employee       Employee     @relation(fields: [employeeId], references: [id])
+}
+
+model HRKPI {
+  id                String   @id @default(cuid())
+  date              DateTime @unique
+  totalEmployees    Int
+  newHires          Int
+  terminations      Int
+  turnoverRate      Float
+  avgTenure         Float
+  totalAbsentDays   Float
+  totalSalaryCost   Float
+  totalTrainingCost Float
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 enum EmployeeStatus {
@@ -72,22 +175,6 @@ enum EmployeeStatus {
   ON_LEAVE
   TERMINATED
   PROBATION
-}
-
-// Contrats de travail
-model Contract {
-  id              String   @id @default(cuid())
-  employeeId      String
-  employee        Employee @relation(fields: [employeeId], references: [id])
-  type            ContractType
-  startDate       DateTime
-  endDate         DateTime?
-  monthlySalary   Float
-  workHours       Float    @default(35)
-  isActive        Boolean  @default(true)
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 }
 
 enum ContractType {
@@ -98,33 +185,15 @@ enum ContractType {
   PART_TIME
 }
 
-// Absences et congés
-model Absence {
-  id              String   @id @default(cuid())
-  employeeId      String
-  employee        Employee @relation(fields: [employeeId], references: [id])
-  type            AbsenceType
-  startDate       DateTime
-  endDate         DateTime
-  days            Float
-  reason          String?
-  status          AbsenceStatus @default(PENDING)
-  approvedBy      String?
-  approvedAt      DateTime?
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 enum AbsenceType {
-  PAID_LEAVE    // Congés payés
-  SICK_LEAVE    // Arrêt maladie
-  RTT           // Réduction du temps de travail
-  UNPAID_LEAVE  // Congé sans solde
-  MATERNITY     // Congé maternité
-  PATERNITY     // Congé paternité
-  FAMILY_EVENT  // Événement familial
-  OTHER         // Autre
+  PAID_LEAVE
+  SICK_LEAVE
+  RTT
+  UNPAID_LEAVE
+  MATERNITY
+  PATERNITY
+  FAMILY_EVENT
+  OTHER
 }
 
 enum AbsenceStatus {
@@ -132,40 +201,6 @@ enum AbsenceStatus {
   APPROVED
   REJECTED
   CANCELLED
-}
-
-// Formations
-model Training {
-  id              String   @id @default(cuid())
-  title           String
-  description     String?
-  provider        String?
-  duration        Float    // Durée en heures
-  cost            Float    // Coût par participant
-  category        String?
-  startDate       DateTime?
-  endDate         DateTime?
-  location        String?
-  employeeTrainings EmployeeTraining[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
-// Participation des employés aux formations
-model EmployeeTraining {
-  id              String   @id @default(cuid())
-  employeeId      String
-  employee        Employee @relation(fields: [employeeId], references: [id])
-  trainingId      String
-  training        Training @relation(fields: [trainingId], references: [id])
-  status          TrainingStatus @default(REGISTERED)
-  startDate       DateTime?
-  endDate         DateTime?
-  hoursCompleted  Float    @default(0)
-  certificate     String?
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
 }
 
 enum TrainingStatus {
@@ -176,70 +211,17 @@ enum TrainingStatus {
   FAILED
 }
 
-// Salaires et masse salariale
-model Salary {
-  id              String   @id @default(cuid())
-  employeeId      String
-  employee        Employee @relation(fields: [employeeId], references: [id])
-  month           DateTime
-  baseSalary      Float
-  bonus           Float    @default(0)
-  overtime        Float    @default(0)
-  deductions      Float    @default(0)
-  socialCharges   Float    @default(0)
-  netSalary       Float
-  grossSalary     Float
-  paidAt          DateTime?
-  status          SalaryStatus @default(PENDING)
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 enum SalaryStatus {
   PENDING
   PAID
   CANCELLED
 }
 
-// Mouvements du personnel (entrées/sorties)
-model Movement {
-  id              String   @id @default(cuid())
-  employeeId      String
-  employee        Employee @relation(fields: [employeeId], references: [id])
-  type            MovementType
-  effectiveDate   DateTime
-  reason          String?
-  fromDepartment  String?
-  toDepartment    String?
-  fromPosition    String?
-  toPosition      String?
-  notes           String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-}
-
 enum MovementType {
-  HIRE           // Recrutement
-  TERMINATION    // Départ
-  TRANSFER       // Mutation
-  PROMOTION      // Promotion
-  DEMOTION       // Rétrogradation
-  RETURN         // Retour de congé
-}
-
-// Données agrégées pour KPIs
-model HRKPI {
-  id              String   @id @default(cuid())
-  date            DateTime @unique
-  totalEmployees  Int
-  newHires        Int
-  terminations    Int
-  turnoverRate    Float
-  avgTenure       Float
-  totalAbsentDays Float
-  totalSalaryCost Float
-  totalTrainingCost Float
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  HIRE
+  TERMINATION
+  TRANSFER
+  PROMOTION
+  DEMOTION
+  RETURN
 }
