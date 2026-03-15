@@ -175,7 +175,14 @@ interface DashboardData {
   recentAbsences: Absence[];
 }
 
-const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+// Couleurs basées sur la palette HR Dashboard
+const COLORS = ['#0A89C5', '#128A4C', '#372E6F', '#B3DCE8', '#0A89C5', '#128A4C', '#372E6F', '#B3DCE8'];
+
+// Couleurs spécifiques
+const PRIMARY = '#0A89C5';    // Bleu eau
+const SECONDARY = '#128A4C'; // Vert
+const DARK = '#372E6F';      // Bleu foncé
+const LIGHT = '#B3DCE8';     // Bleu clair
 
 const CONTRACT_TYPES: Record<string, string> = {
   CDI: 'CDI',
@@ -205,14 +212,14 @@ const TRAINING_STATUS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
+  PENDING: 'bg-amber-100 text-amber-800',
   APPROVED: 'bg-green-100 text-green-800',
   REJECTED: 'bg-red-100 text-red-800',
   PAID: 'bg-green-100 text-green-800',
-  ACTIVE: 'bg-green-100 text-green-800',
+  ACTIVE: 'bg-[#B3DCE8] text-[#372E6F]',
   TERMINATED: 'bg-gray-100 text-gray-800',
-  ON_LEAVE: 'bg-blue-100 text-blue-800',
-  PROBATION: 'bg-orange-100 text-orange-800'
+  ON_LEAVE: 'bg-[#B3DCE8] text-[#0A89C5]',
+  PROBATION: 'bg-amber-100 text-amber-800'
 };
 
 export default function HRDashboard() {
@@ -504,7 +511,7 @@ export default function HRDashboard() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
         <div className="text-center">
-          <RefreshCw className="h-12 w-12 animate-spin text-emerald-600 mx-auto mb-4" />
+          <RefreshCw className="h-12 w-12 animate-spin text-[#0A89C5] mx-auto mb-4" />
           <p className="text-lg text-slate-600">Chargement du tableau de bord RH...</p>
         </div>
       </div>
@@ -545,7 +552,7 @@ export default function HRDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-emerald-600 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-lg bg-[#0A89C5] flex items-center justify-center">
                 <Users className="h-6 w-6 text-white" />
               </div>
               <div>
@@ -607,50 +614,50 @@ export default function HRDashboard() {
           <TabsContent value="dashboard" className="space-y-6">
             {/* KPI Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+              <Card className="bg-gradient-to-br from-[#0A89C5] to-[#0875a8] text-white">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-emerald-100 text-sm">Total Effectifs</p>
+                      <p className="text-[#B3DCE8] text-sm">Total Effectifs</p>
                       <p className="text-3xl font-bold">{dashboardData?.totalEmployees || 0}</p>
                     </div>
-                    <Users className="h-10 w-10 text-emerald-200" />
+                    <Users className="h-10 w-10 text-[#B3DCE8]" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+              <Card className="bg-gradient-to-br from-[#128A4C] to-[#0f7340] text-white">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-blue-100 text-sm">Nouveaux Recrutements</p>
+                      <p className="text-green-100 text-sm">Nouveaux Recrutements</p>
                       <p className="text-3xl font-bold">{dashboardData?.newHires || 0}</p>
                     </div>
-                    <UserPlus className="h-10 w-10 text-blue-200" />
+                    <UserPlus className="h-10 w-10 text-green-200" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-amber-500 to-amber-600 text-white">
+              <Card className="bg-gradient-to-br from-[#372E6F] to-[#2a2358] text-white">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-amber-100 text-sm">Départs</p>
+                      <p className="text-[#B3DCE8] text-sm">Départs</p>
                       <p className="text-3xl font-bold">{dashboardData?.terminations || 0}</p>
                     </div>
-                    <UserMinus className="h-10 w-10 text-amber-200" />
+                    <UserMinus className="h-10 w-10 text-[#B3DCE8]" />
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
+              <Card className="bg-gradient-to-br from-[#0A89C5] to-[#372E6F] text-white">
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-purple-100 text-sm">Turnover</p>
+                      <p className="text-[#B3DCE8] text-sm">Turnover</p>
                       <p className="text-3xl font-bold">{dashboardData?.turnoverRate || 0}%</p>
                     </div>
-                    <TrendingUp className="h-10 w-10 text-purple-200" />
+                    <TrendingUp className="h-10 w-10 text-[#B3DCE8]" />
                   </div>
                 </CardContent>
               </Card>
@@ -661,8 +668,8 @@ export default function HRDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-pink-100 flex items-center justify-center">
-                      <Calendar className="h-6 w-6 text-pink-600" />
+                    <div className="h-12 w-12 rounded-lg bg-[#B3DCE8] flex items-center justify-center">
+                      <Calendar className="h-6 w-6 text-[#0A89C5]" />
                     </div>
                     <div>
                       <p className="text-sm text-slate-500">Jours d'absence</p>
@@ -675,8 +682,8 @@ export default function HRDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-green-100 flex items-center justify-center">
-                      <Euro className="h-6 w-6 text-green-600" />
+                    <div className="h-12 w-12 rounded-lg bg-[#128A4C]/20 flex items-center justify-center">
+                      <Euro className="h-6 w-6 text-[#128A4C]" />
                     </div>
                     <div>
                       <p className="text-sm text-slate-500">Masse salariale</p>
@@ -689,8 +696,8 @@ export default function HRDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-indigo-100 flex items-center justify-center">
-                      <GraduationCap className="h-6 w-6 text-indigo-600" />
+                    <div className="h-12 w-12 rounded-lg bg-[#372E6F]/20 flex items-center justify-center">
+                      <GraduationCap className="h-6 w-6 text-[#372E6F]" />
                     </div>
                     <div>
                       <p className="text-sm text-slate-500">Heures formation</p>
@@ -703,8 +710,8 @@ export default function HRDashboard() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-lg bg-cyan-100 flex items-center justify-center">
-                      <Clock className="h-6 w-6 text-cyan-600" />
+                    <div className="h-12 w-12 rounded-lg bg-[#0A89C5]/20 flex items-center justify-center">
+                      <Clock className="h-6 w-6 text-[#0A89C5]" />
                     </div>
                     <div>
                       <p className="text-sm text-slate-500">Ancienneté moy.</p>
@@ -732,7 +739,7 @@ export default function HRDashboard() {
                         <XAxis type="number" />
                         <YAxis dataKey="department" type="category" width={100} fontSize={12} />
                         <Tooltip />
-                        <Bar dataKey="count" fill="#22c55e" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="count" fill="#0A89C5" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -789,7 +796,7 @@ export default function HRDashboard() {
                         <YAxis />
                         <Tooltip />
                         <Legend />
-                        <Area type="monotone" dataKey="hired" name="Recrutements" stackId="1" stroke="#22c55e" fill="#22c55e" fillOpacity={0.6} />
+                        <Area type="monotone" dataKey="hired" name="Recrutements" stackId="1" stroke="#0A89C5" fill="#0A89C5" fillOpacity={0.6} />
                         <Area type="monotone" dataKey="left" name="Départs" stackId="2" stroke="#ef4444" fill="#ef4444" fillOpacity={0.6} />
                       </AreaChart>
                     </ResponsiveContainer>
@@ -817,7 +824,7 @@ export default function HRDashboard() {
                         <XAxis dataKey="type" fontSize={10} />
                         <YAxis />
                         <Tooltip />
-                        <Bar dataKey="days" name="Jours" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="days" name="Jours" fill="#128A4C" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -846,7 +853,7 @@ export default function HRDashboard() {
                       <XAxis dataKey="department" fontSize={12} />
                       <YAxis tickFormatter={(value) => `${(value / 1000).toFixed(0)}k€`} />
                       <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                      <Bar dataKey="amount" name="Masse salariale" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="amount" name="Masse salariale" fill="#0A89C5" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -929,7 +936,7 @@ export default function HRDashboard() {
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={employee.photo} />
-                                <AvatarFallback className="bg-emerald-100 text-emerald-700">
+                                <AvatarFallback className="bg-[#B3DCE8] text-[#0A89C5]">
                                   {employee.firstName[0]}{employee.lastName[0]}
                                 </AvatarFallback>
                               </Avatar>
