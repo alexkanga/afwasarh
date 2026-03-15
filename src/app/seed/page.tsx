@@ -19,7 +19,7 @@ interface SeedStats {
 
 export default function SeedPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [stats, setStats] = useState<SeedStats | null>(null);
@@ -38,15 +38,21 @@ export default function SeedPage() {
       const data = await response.json();
       if (data.success && data.data.length > 0) {
         setAlreadySeeded(true);
-        setStats({
-          departments: 0,
-          positions: 0,
-          employees: data.data.length,
-          trainings: 0
-        });
+        // Get full stats from dashboard
+        const dashResponse = await fetch('/api/dashboard?year=2024');
+        const dashData = await dashResponse.json();
+        if (dashData.success) {
+          setStats({
+            departments: dashData.data.departmentStats?.length || 8,
+            positions: 22,
+            employees: dashData.data.totalEmployees || data.data.length,
+            trainings: 5
+          });
+        }
       }
     } catch (err) {
       console.error('Error checking database:', err);
+      setError('Impossible de vérifier la base de données');
     } finally {
       setLoading(false);
     }
@@ -63,13 +69,16 @@ export default function SeedPage() {
       
       if (data.success) {
         setMessage(data.message);
-        setStats(data.stats);
+        if (data.stats) {
+          setStats(data.stats);
+        }
         setAlreadySeeded(true);
       } else {
         setError(data.error || 'Erreur lors de l\'initialisation');
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      console.error('Seed error:', err);
+      setError('Erreur de connexion au serveur. Vérifiez que la base de données est accessible.');
     } finally {
       setSeeding(false);
     }
@@ -86,13 +95,16 @@ export default function SeedPage() {
       
       if (data.success) {
         setMessage(data.message);
-        setStats(data.stats);
+        if (data.stats) {
+          setStats(data.stats);
+        }
         setAlreadySeeded(true);
       } else {
         setError(data.error || 'Erreur lors de la réinitialisation');
       }
     } catch (err) {
-      setError('Erreur de connexion au serveur');
+      console.error('Reset error:', err);
+      setError('Erreur de connexion au serveur. Vérifiez que la base de données est accessible.');
     } finally {
       setResetting(false);
     }
@@ -181,7 +193,7 @@ export default function SeedPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-center gap-2 text-green-600 font-medium">
                   <CheckCircle className="h-5 w-5" />
-                  Base de données initialisée
+                  Base de données prête
                 </div>
                 
                 <div className="flex gap-3">
