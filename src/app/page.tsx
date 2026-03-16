@@ -10,7 +10,7 @@ import {
   Euro, Building2, Briefcase, FileText, Download, Plus, Edit, Trash2,
   Eye, Search, Filter, RefreshCw, ChevronDown, ChevronUp, X, Check,
   AlertCircle, Clock, Award, Target, Activity, PieChart as PieChartIcon,
-  BarChart3, TrendingDown, UserCheck, UserX, Ban, MoreHorizontal
+  BarChart3, TrendingDown, UserCheck, UserX, Ban, MoreHorizontal, Upload
 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -499,6 +499,230 @@ export default function HRDashboard() {
       age--;
     }
     return age;
+  };
+
+  // Export data to CSV
+  const exportData = () => {
+    // Prepare employees data
+    const employeesData = employees.map(emp => ({
+      'N° Employé': emp.employeeNumber,
+      'Prénom': emp.firstName,
+      'Nom': emp.lastName,
+      'Email': emp.email,
+      'Téléphone': emp.phone || '',
+      'Département': emp.department?.name || '',
+      'Poste': emp.position?.title || '',
+      'Date d\'entrée': formatDate(emp.hireDate),
+      'Statut': emp.status === 'ACTIVE' ? 'Actif' : emp.status === 'TERMINATED' ? 'Parti' : emp.status === 'ON_LEAVE' ? 'En congé' : emp.status
+    }));
+
+    // Convert to CSV
+    const headers = Object.keys(employeesData[0] || {});
+    const csvContent = [
+      headers.join(';'),
+      ...employeesData.map(row => headers.map(h => `"${row[h as keyof typeof row] || ''}"`).join(';'))
+    ].join('\n');
+
+    // Download file
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `export_rh_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+
+    toast({ title: 'Succès', description: 'Données exportées avec succès' });
+  };
+
+  // Import data from CSV
+  const importData = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        if (lines.length < 2) {
+          toast({ title: 'Erreur', description: 'Le fichier est vide ou mal formaté', variant: 'destructive' });
+          return;
+        }
+
+        // Parse header
+        const headers = lines[0].split(';').map(h => h.replace(/"/g, '').trim());
+        
+        // Map headers to indices
+        const headerMap: Record<string, number> = {};
+        headers.forEach((h, i) => {
+          if (h.includes('N°') || h.includes('Employé')) headerMap['employeeNumber'] = i;
+          else if (h === 'Prénom') headerMap['firstName'] = i;
+          else if (h === 'Nom') headerMap['lastName'] = i;
+          else if (h === 'Email') headerMap['email'] = i;
+          else if (h === 'Téléphone') headerMap['phone'] = i;
+          else if (h === 'Département') headerMap['department'] = i;
+          else if (h === 'Poste') headerMap['position'] = i;
+          else if (h.includes('Date d\'entrée') || h.includes("Date d'entrée")) headerMap['hireDate'] = i;
+          else if (h === 'Statut') headerMap['status'] = i;
+        });
+
+        let imported = 0;
+        let errors = 0;
+
+        // Process each row
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(';').map(v => v.replace(/"/g, '').trim());
+          
+          if (values.length < Object.keys(headerMap).length) continue;
+
+          const employeeNumber = values[headerMap['employeeNumber']] || `EMP${Date.now()}${i}`;
+          const firstName = values[headerMap['firstName']] || '';
+          const lastName = values[headerMap['lastName']] || '';
+          const email = values[headerMap['email']] || '';
+          const phone = values[headerMap['phone']] || '';
+          const departmentName = values[headerMap['department']] || '';
+          const positionTitle = values[headerMap['position']] || '';
+          const hireDateStr = values[headerMap['hireDate']] || '';
+          const statusStr = values[headerMap['status']] || 'Actif';
+
+          // Skip if missing required fields
+          if (!firstName || !lastName || !email) {
+            errors++;
+            continue;
+          }
+
+          try {
+            // Find or create department
+            let departmentId: string | null = null;
+            if (departmentName) {
+              let dept = departments.find(d => d.name.toLowerCase() === departmentName.toLowerCase());
+              if (!dept) {
+                const response = await fetch('/api/departments', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name: departmentName })
+                });
+                const data = await response.json();
+                if (data.success) {
+                  departmentId = data.data.id;
+                  await fetchDepartments();
+                }
+              } else {
+                departmentId = dept.id;
+              }
+            }
+
+            // Find or create position
+            let positionId: string | null = null;
+            if (positionTitle) {
+              let pos = positions.find(p => p.title.toLowerCase() === positionTitle.toLowerCase());
+              if (!pos) {
+                const response = await fetch('/api/positions', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ title: positionTitle })
+                });
+                const data = await response.json();
+                if (data.success) {
+                  positionId = data.data.id;
+                  await fetchPositions();
+                }
+              } else {
+                positionId = pos.id;
+              }
+            }
+
+            // Parse hire date (format: dd MMM yyyy or yyyy-MM-dd)
+            let hireDate = new Date();
+            if (hireDateStr) {
+              try {
+                // Try parsing as ISO format first
+                if (hireDateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                  hireDate = new Date(hireDateStr);
+                } else {
+                  // Try parsing French format (dd MMM yyyy)
+                  const parts = hireDateStr.split(' ');
+                  if (parts.length === 3) {
+                    const months: Record<string, number> = {
+                      'janv': 0, 'févr': 1, 'mars': 2, 'avr': 3, 'mai': 4, 'juin': 5,
+                      'juil': 6, 'août': 7, 'sept': 8, 'oct': 9, 'nov': 10, 'déc': 11,
+                      'jan': 0, 'fev': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                      'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+                    };
+                    const day = parseInt(parts[0]);
+                    const month = months[parts[1].toLowerCase()] ?? 0;
+                    const year = parseInt(parts[2]);
+                    hireDate = new Date(year, month, day);
+                  }
+                }
+              } catch {
+                hireDate = new Date();
+              }
+            }
+
+            // Map status
+            let status = 'ACTIVE';
+            if (statusStr.toLowerCase().includes('parti') || statusStr.toLowerCase().includes('terminé')) {
+              status = 'TERMINATED';
+            } else if (statusStr.toLowerCase().includes('congé') || statusStr.toLowerCase().includes('conge')) {
+              status = 'ON_LEAVE';
+            } else if (statusStr.toLowerCase().includes('essai') || statusStr.toLowerCase().includes('probation')) {
+              status = 'PROBATION';
+            }
+
+            // Create employee
+            const response = await fetch('/api/employees', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                employeeNumber,
+                firstName,
+                lastName,
+                email,
+                phone: phone || null,
+                hireDate: hireDate.toISOString().split('T')[0],
+                departmentId,
+                positionId,
+                status
+              })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+              imported++;
+            } else {
+              // If employee already exists, try to update
+              if (data.error?.includes('existe déjà')) {
+                errors++;
+              }
+            }
+          } catch (err) {
+            errors++;
+            console.error('Error importing row:', err);
+          }
+        }
+
+        // Refresh data
+        await Promise.all([
+          fetchEmployees(),
+          fetchDepartments(),
+          fetchPositions(),
+          fetchDashboardData()
+        ]);
+
+        toast({ 
+          title: 'Import terminé', 
+          description: `${imported} employé(s) importé(s). ${errors > 0 ? `${errors} erreur(s).` : ''}`
+        });
+      } catch (error) {
+        console.error('Error parsing file:', error);
+        toast({ title: 'Erreur', description: 'Erreur lors de la lecture du fichier', variant: 'destructive' });
+      }
+    };
+
+    reader.readAsText(file);
+    // Reset input
+    event.target.value = '';
   };
 
   if (loading) {
@@ -1341,10 +1565,24 @@ export default function HRDashboard() {
           <TabsContent value="reports" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold">Rapports RH</h2>
-              <Button>
-                <Download className="h-4 w-4 mr-2" />
-                Exporter les données
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" asChild>
+                  <label className="cursor-pointer">
+                    <Upload className="h-4 w-4 mr-2" />
+                    Importer les données
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={importData}
+                      className="hidden"
+                    />
+                  </label>
+                </Button>
+                <Button onClick={exportData}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Exporter les données
+                </Button>
+              </div>
             </div>
 
             {/* Turnover Analysis */}
