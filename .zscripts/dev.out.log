@@ -1455,3 +1455,10 @@ prisma:query SELECT `main`.`Department`.`id`, `main`.`Department`.`name`, `main`
 prisma:query SELECT `main`.`Position`.`id`, `main`.`Position`.`title`, `main`.`Position`.`description`, `main`.`Position`.`baseSalary`, `main`.`Position`.`createdAt`, `main`.`Position`.`updatedAt` FROM `main`.`Position` WHERE `main`.`Position`.`id` IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?) LIMIT ? OFFSET ?
 prisma:query SELECT `main`.`Contract`.`id`, `main`.`Contract`.`employeeId`, `main`.`Contract`.`type`, `main`.`Contract`.`startDate`, `main`.`Contract`.`endDate`, `main`.`Contract`.`monthlySalary`, `main`.`Contract`.`workHours`, `main`.`Contract`.`isActive`, `main`.`Contract`.`notes`, `main`.`Contract`.`createdAt`, `main`.`Contract`.`updatedAt` FROM `main`.`Contract` WHERE (`main`.`Contract`.`isActive` = ? AND `main`.`Contract`.`employeeId` IN (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)) ORDER BY `main`.`Contract`.`id` ASC LIMIT ? OFFSET ?
  GET /api/employees? 200 in 8ms (compile: 1790µs, render: 7ms)
+==========================================
+[2026-03-16 10:42:02] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.11ms] ".env"
+bun install v1.3.10 (30e609e0)
+error: Failed to link @babel/parser: EEXIST

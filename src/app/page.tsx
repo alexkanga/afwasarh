@@ -1682,7 +1682,7 @@ function EmployeeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>{employee ? 'Modifier l\'employé' : 'Nouvel employé'}</DialogTitle>
           <DialogDescription>
@@ -1884,7 +1884,7 @@ function AbsenceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>{absence ? 'Modifier l\'absence' : 'Nouvelle absence'}</DialogTitle>
         </DialogHeader>
@@ -2026,7 +2026,7 @@ function TrainingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>Inscrire à une formation</DialogTitle>
         </DialogHeader>
@@ -2159,7 +2159,7 @@ function SalaryModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>Nouveau bulletin de salaire</DialogTitle>
         </DialogHeader>
@@ -2330,7 +2330,7 @@ function ContractModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>Nouveau contrat</DialogTitle>
         </DialogHeader>
@@ -2463,7 +2463,7 @@ function DepartmentModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>Gestion des départements</DialogTitle>
         </DialogHeader>
@@ -2592,7 +2592,7 @@ function PositionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl bg-white">
+      <DialogContent className="max-w-4xl bg-white">
         <DialogHeader>
           <DialogTitle>Gestion des postes</DialogTitle>
         </DialogHeader>
